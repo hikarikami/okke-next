@@ -7,7 +7,9 @@
 	import { DropdownMenu } from '$lib/components/ui/dropdown-menu.js';
 	import { Separator } from '$lib/components/ui/separator.js';
 	import { Tooltip } from '$lib/components/ui/tooltip.js';
+	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
+	import type { LayoutData } from './$types';
 	import {
 		LayoutDashboard,
 		ArrowLeftRight,
@@ -24,12 +26,25 @@
 		ChevronDown
 	} from 'lucide-svelte';
 
-	let { children } = $props();
+	let { children, data }: { children: import('svelte').Snippet; data: LayoutData } = $props();
 
 	let sidebarCollapsed = $state(false);
 	let dark = $state(false);
 
-	const isLandingPage = $derived($page.url.pathname === '/');
+	const isPublicPage = $derived(
+		$page.url.pathname === '/' || $page.url.pathname.startsWith('/login')
+	);
+
+	const userInitials = $derived(
+		data.user?.name
+			? data.user.name
+					.split(' ')
+					.map((w: string) => w[0])
+					.slice(0, 2)
+					.join('')
+					.toUpperCase()
+			: '?'
+	);
 
 	$effect(() => {
 		if (dark) {
@@ -52,7 +67,7 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{#if isLandingPage}
+{#if isPublicPage}
 	{@render children()}
 {:else}
 <div class="flex h-screen flex-col bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
@@ -101,11 +116,11 @@
 					<Avatar.Root
 						class="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-primary-600 text-xs font-medium text-white"
 					>
-						<Avatar.Fallback>JD</Avatar.Fallback>
+						<Avatar.Fallback>{userInitials}</Avatar.Fallback>
 					</Avatar.Root>
-					<span class="hidden text-sm font-medium text-gray-700 dark:text-gray-300 sm:block"
-						>John Doe</span
-					>
+					<span class="hidden text-sm font-medium text-gray-700 dark:text-gray-300 sm:block">
+						{data.user?.name ?? ''}
+					</span>
 					<ChevronDown size={14} class="text-gray-400" />
 				</DropdownMenu.Trigger>
 
@@ -114,24 +129,32 @@
 					sideOffset={6}
 					align="end"
 				>
+					<div class="border-b border-gray-100 px-3 py-2 dark:border-gray-800">
+						<p class="text-xs font-medium text-gray-900 dark:text-gray-100">{data.user?.name}</p>
+						<p class="text-xs text-gray-400">{data.user?.email}</p>
+					</div>
 					<DropdownMenu.Item
 						class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
 					>
-						<User size={14} />
-						Profile
-					</DropdownMenu.Item>
-					<DropdownMenu.Item
-						class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-					>
-						<Settings size={14} />
-						Settings
+						{#snippet child({ props })}
+							<a href="/settings" {...props}>
+								<Settings size={14} />
+								Settings
+							</a>
+						{/snippet}
 					</DropdownMenu.Item>
 					<DropdownMenu.Separator class="my-1 border-t border-gray-200 dark:border-gray-700" />
 					<DropdownMenu.Item
 						class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
 					>
-						<LogOut size={14} />
-						Sign out
+						{#snippet child({ props })}
+							<form method="post" action="/signout" use:enhance class="contents">
+								<button type="submit" {...props} class="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+									<LogOut size={14} />
+									Sign out
+								</button>
+							</form>
+						{/snippet}
 					</DropdownMenu.Item>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>

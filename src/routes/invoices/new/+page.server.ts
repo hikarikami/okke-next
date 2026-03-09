@@ -1,15 +1,18 @@
 import { db } from '$lib/server/db';
 import { invoices, contacts, businessSettings } from '$lib/server/db/schema';
 import { fail, redirect } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import type { InvoiceTheme } from '$lib/types/business';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
-	// Compute next invoice number
+export const load: PageServerLoad = async ({ locals }) => {
+	const userId = locals.user!.id;
+
+	// Compute next invoice number scoped to this user
 	const [last] = await db
 		.select({ number: invoices.number })
 		.from(invoices)
+		.where(eq(invoices.userId, userId))
 		.orderBy(desc(invoices.createdAt))
 		.limit(1);
 
@@ -23,20 +26,24 @@ export const load: PageServerLoad = async () => {
 	}
 
 	const [allContacts, [settings]] = await Promise.all([
-		db.select().from(contacts).orderBy(contacts.name),
-		db.select({ invoiceTheme: businessSettings.invoiceTheme, brandColour: businessSettings.brandColour }).from(businessSettings).where(eq(businessSettings.id, 'default'))
+		db.select().from(contacts).where(eq(contacts.userId, userId)).orderBy(contacts.name),
+		db
+			.select({ invoiceTheme: businessSettings.invoiceTheme, brandColour: businessSettings.brandColour })
+			.from(businessSettings)
+			.where(eq(businessSettings.userId, userId))
 	]);
 
 	return {
 		nextNumber,
 		contacts: allContacts,
-		invoiceTheme: ((settings?.invoiceTheme ?? 'classic') as InvoiceTheme),
+		invoiceTheme: (settings?.invoiceTheme ?? 'classic') as InvoiceTheme,
 		brandColour: settings?.brandColour ?? '#37a87d'
 	};
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
+	create: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 
 		const number = (data.get('number') as string | null)?.trim();
@@ -62,6 +69,7 @@ export const actions: Actions = {
 		const [inserted] = await db
 			.insert(invoices)
 			.values({
+				userId,
 				number,
 				status: status as 'draft' | 'sent',
 				issueDate,
@@ -84,7 +92,8 @@ export const actions: Actions = {
 		redirect(303, `/invoices/${inserted.id}`);
 	},
 
-	createContact: async ({ request }) => {
+	createContact: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 		const name = (data.get('name') as string | null)?.trim();
 
@@ -92,7 +101,7 @@ export const actions: Actions = {
 
 		const [row] = await db
 			.insert(contacts)
-			.values({ name })
+			.values({ userId, name })
 			.returning({ id: contacts.id });
 
 		return { createdContactId: row.id };

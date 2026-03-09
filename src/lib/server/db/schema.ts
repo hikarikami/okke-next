@@ -1,10 +1,14 @@
 import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core';
+import { user } from './auth.schema';
 
 // ── Categories ──────────────────────────────────────────────────────────────
 export const categories = sqliteTable('categories', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	label: text('label').notNull(),
 	type: text('type', { enum: ['income', 'expense', 'both'] }).notNull(),
 	color: text('color').notNull()
@@ -15,6 +19,9 @@ export const transactions = sqliteTable('transactions', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	type: text('type', { enum: ['income', 'expense'] }).notNull(),
 	description: text('description').notNull(),
 	// stored as cents (integer) to avoid floating point issues
@@ -30,6 +37,9 @@ export const companies = sqliteTable('companies', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	name: text('name').notNull()
 });
 
@@ -38,6 +48,9 @@ export const contacts = sqliteTable('contacts', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	email: text('email').notNull().default(''),
 	companyId: text('company_id').references(() => companies.id, { onDelete: 'set null' }),
@@ -51,6 +64,9 @@ export const invoices = sqliteTable('invoices', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	number: text('number').notNull(),
 	status: text('status', { enum: ['draft', 'sent'] }).notNull().default('draft'),
 	issueDate: text('issue_date').notNull(),
@@ -70,9 +86,15 @@ export const invoices = sqliteTable('invoices', {
 });
 
 // ── Business Settings ────────────────────────────────────────────────────────
-// Single-row table (always id = 'default')
+// One row per user
 export const businessSettings = sqliteTable('business_settings', {
-	id: text('id').primaryKey().default('default'),
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	userId: text('user_id')
+		.notNull()
+		.unique()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	name: text('name').notNull().default(''),
 	abn: text('abn').notNull().default(''),
 	streetAddressJson: text('street_address_json').notNull().default('{}'),

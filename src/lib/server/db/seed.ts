@@ -1,6 +1,7 @@
 /**
- * Seed script — run once to populate the database with default data.
- * Usage: npx tsx src/lib/server/db/seed.ts
+ * Seed script — populate the database with sample data for a user.
+ * Usage: npx tsx src/lib/server/db/seed.ts <userId>
+ * The userId must already exist in the user table (sign up first, then grab your id).
  */
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
@@ -83,10 +84,10 @@ const SEED_TRANSACTIONS = [
 	}
 ];
 
-async function seed() {
-	console.log('Seeding categories…');
+async function seed(userId: string) {
+	console.log(`Seeding categories for user ${userId}…`);
 	for (const cat of DEFAULT_CATEGORIES) {
-		await db.insert(categories).values(cat).onConflictDoNothing();
+		await db.insert(categories).values({ ...cat, userId }).onConflictDoNothing();
 	}
 
 	console.log('Seeding transactions…');
@@ -94,7 +95,7 @@ async function seed() {
 	for (const tx of SEED_TRANSACTIONS) {
 		await db
 			.insert(transactions)
-			.values({ ...tx, createdAt: now, updatedAt: now })
+			.values({ ...tx, userId, createdAt: now, updatedAt: now })
 			.onConflictDoNothing();
 	}
 
@@ -102,7 +103,13 @@ async function seed() {
 	client.close();
 }
 
-seed().catch((err) => {
+const userId = process.argv[2];
+if (!userId) {
+	console.error('Usage: npx tsx src/lib/server/db/seed.ts <userId>');
+	process.exit(1);
+}
+
+seed(userId).catch((err) => {
 	console.error(err);
 	process.exit(1);
 });

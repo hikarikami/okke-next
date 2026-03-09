@@ -1,10 +1,12 @@
 import { db } from '$lib/server/db';
 import { contacts, companies } from '$lib/server/db/schema';
 import { fail } from '@sveltejs/kit';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	const userId = locals.user!.id;
+
 	const rows = await db
 		.select({
 			id: contacts.id,
@@ -15,15 +17,21 @@ export const load: PageServerLoad = async () => {
 		})
 		.from(contacts)
 		.leftJoin(companies, eq(contacts.companyId, companies.id))
+		.where(eq(contacts.userId, userId))
 		.orderBy(contacts.name);
 
-	const allCompanies = await db.select().from(companies).orderBy(companies.name);
+	const allCompanies = await db
+		.select()
+		.from(companies)
+		.where(eq(companies.userId, userId))
+		.orderBy(companies.name);
 
 	return { contacts: rows, companies: allCompanies };
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
+	create: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 		const name = (data.get('name') as string | null)?.trim();
 		const email = (data.get('email') as string | null)?.trim() ?? '';
@@ -40,12 +48,13 @@ export const actions: Actions = {
 		if (newCompanyName && !companyId) {
 			const [inserted] = await db
 				.insert(companies)
-				.values({ name: newCompanyName })
+				.values({ userId, name: newCompanyName })
 				.returning({ id: companies.id });
 			resolvedCompanyId = inserted.id;
 		}
 
 		await db.insert(contacts).values({
+			userId,
 			name,
 			email,
 			companyId: resolvedCompanyId,
@@ -54,10 +63,11 @@ export const actions: Actions = {
 		});
 	},
 
-	delete: async ({ request }) => {
+	delete: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 		const id = data.get('id') as string | null;
 		if (!id) return fail(400, { message: 'Missing id' });
-		await db.delete(contacts).where(eq(contacts.id, id));
+		await db.delete(contacts).where(and(eq(contacts.id, id), eq(contacts.userId, userId)));
 	}
 };

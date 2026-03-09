@@ -148,13 +148,13 @@
 			<!-- Desktop CTAs -->
 			<div class="hidden items-center gap-3 md:flex">
 				<a
-					href="/dashboard"
+					href="/login"
 					class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
 				>
 					Sign in
 				</a>
 				<a
-					href="/dashboard"
+					href="/login"
 					class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
 				>
 					Get started
@@ -183,8 +183,8 @@
 					<a href="#how-it-works" class="text-sm font-medium text-gray-700" onclick={() => (mobileMenuOpen = false)}>How it works</a>
 					<a href="#pricing" class="text-sm font-medium text-gray-700" onclick={() => (mobileMenuOpen = false)}>Pricing</a>
 					<div class="flex flex-col gap-2 border-t border-gray-100 pt-4">
-						<a href="/dashboard" class="text-sm font-medium text-gray-600">Sign in</a>
-						<a href="/dashboard" class="rounded-lg bg-primary-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-primary-700">
+						<a href="/login" class="text-sm font-medium text-gray-600">Sign in</a>
+						<a href="/login" class="rounded-lg bg-primary-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-primary-700">
 							Get started
 						</a>
 					</div>
@@ -221,7 +221,7 @@
 			<!-- CTAs -->
 			<div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
 				<a
-					href="/dashboard"
+					href="/login"
 					class="flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-700 hover:shadow-md"
 				>
 					Get started free
@@ -428,7 +428,7 @@
 						</ul>
 
 						<a
-							href="/dashboard"
+							href="/login"
 							class="block mt-auto rounded-xl px-4 py-3 text-center text-sm font-semibold transition-colors {plan.highlighted
 								? 'bg-white text-primary-700 hover:bg-primary-50'
 								: 'bg-primary-600 text-white hover:bg-primary-700'}"
@@ -452,7 +452,7 @@
 			</p>
 			<div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
 				<a
-					href="/dashboard"
+					href="/login"
 					class="flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-700 hover:shadow-md"
 				>
 					Get started free

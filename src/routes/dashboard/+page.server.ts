@@ -3,7 +3,8 @@ import { categories, transactions } from '$lib/server/db/schema';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	const userId = locals.user!.id;
 	const now = new Date();
 	const y = now.getFullYear();
 	const m = now.getMonth() + 1;
@@ -35,14 +36,26 @@ export const load: PageServerLoad = async () => {
 		})
 		.from(transactions)
 		.leftJoin(categories, eq(transactions.categoryId, categories.id))
-		.where(and(gte(transactions.date, thisFrom), lte(transactions.date, thisTo)))
+		.where(
+			and(
+				eq(transactions.userId, userId),
+				gte(transactions.date, thisFrom),
+				lte(transactions.date, thisTo)
+			)
+		)
 		.orderBy(sql`${transactions.date} desc`);
 
 	// Previous month totals
 	const prevRows = await db
 		.select({ type: transactions.type, amountCents: transactions.amountCents })
 		.from(transactions)
-		.where(and(gte(transactions.date, prevFrom), lte(transactions.date, prevTo)));
+		.where(
+			and(
+				eq(transactions.userId, userId),
+				gte(transactions.date, prevFrom),
+				lte(transactions.date, prevTo)
+			)
+		);
 
 	const txs = txRows.map((r) => ({ ...r, amount: r.amountCents / 100 }));
 

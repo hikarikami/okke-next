@@ -1,14 +1,19 @@
 import { db } from '$lib/server/db';
 import { invoices, businessSettings } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { InvoiceTheme } from '$lib/types/business';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	const userId = locals.user!.id;
+
 	const [[row], [settings]] = await Promise.all([
-		db.select().from(invoices).where(eq(invoices.id, params.id)),
-		db.select({ invoiceTheme: businessSettings.invoiceTheme, brandColour: businessSettings.brandColour }).from(businessSettings).where(eq(businessSettings.id, 'default'))
+		db.select().from(invoices).where(and(eq(invoices.id, params.id), eq(invoices.userId, userId))),
+		db
+			.select({ invoiceTheme: businessSettings.invoiceTheme, brandColour: businessSettings.brandColour })
+			.from(businessSettings)
+			.where(eq(businessSettings.userId, userId))
 	]);
 	if (!row) throw error(404, 'Invoice not found');
 
@@ -21,21 +26,23 @@ export const load: PageServerLoad = async ({ params }) => {
 			notes: row.notes ?? undefined,
 			paymentTerms: row.paymentTerms ?? undefined
 		},
-		invoiceTheme: ((settings?.invoiceTheme ?? 'classic') as InvoiceTheme),
+		invoiceTheme: (settings?.invoiceTheme ?? 'classic') as InvoiceTheme,
 		brandColour: settings?.brandColour ?? '#37a87d'
 	};
 };
 
 export const actions: Actions = {
-	markSent: async ({ params }) => {
+	markSent: async ({ params, locals }) => {
+		const userId = locals.user!.id;
 		await db
 			.update(invoices)
 			.set({ status: 'sent', updatedAt: new Date().toISOString() })
-			.where(eq(invoices.id, params.id));
+			.where(and(eq(invoices.id, params.id), eq(invoices.userId, userId)));
 	},
 
-	delete: async ({ params }) => {
-		await db.delete(invoices).where(eq(invoices.id, params.id));
+	delete: async ({ params, locals }) => {
+		const userId = locals.user!.id;
+		await db.delete(invoices).where(and(eq(invoices.id, params.id), eq(invoices.userId, userId)));
 		redirect(303, '/invoices');
 	}
 };

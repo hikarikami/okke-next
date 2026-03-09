@@ -5,7 +5,8 @@ import { fail } from '@sveltejs/kit';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	const userId = locals.user!.id;
 	// Read ?month=YYYY-MM from URL, default to current month
 	const monthParam = url.searchParams.get('month');
 	const now = new Date();
@@ -29,12 +30,13 @@ export const load: PageServerLoad = async ({ url }) => {
 		})
 		.from(transactions)
 		.leftJoin(categories, eq(transactions.categoryId, categories.id))
-		.where(and(gte(transactions.date, from), lte(transactions.date, to)))
+		.where(and(eq(transactions.userId, userId), gte(transactions.date, from), lte(transactions.date, to)))
 		.orderBy(sql`${transactions.date} desc`);
 
 	const allCategories = await db
 		.select()
 		.from(categories)
+		.where(eq(categories.userId, userId))
 		.orderBy(categories.label);
 
 	const txs = rows.map((r) => ({
@@ -60,7 +62,8 @@ export const load: PageServerLoad = async ({ url }) => {
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
+	create: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 		const type = data.get('type') as string | null;
 		const description = (data.get('description') as string | null)?.trim();
@@ -79,6 +82,7 @@ export const actions: Actions = {
 
 		const now = new Date().toISOString();
 		await db.insert(transactions).values({
+			userId,
 			type: type as 'income' | 'expense',
 			description,
 			amountCents,
@@ -89,29 +93,32 @@ export const actions: Actions = {
 		});
 	},
 
-	delete: async ({ request }) => {
+	delete: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 		const id = data.get('id') as string | null;
 		if (!id) return fail(400, { message: 'Missing id' });
-		await db.delete(transactions).where(eq(transactions.id, id));
+		// Scope delete to the user's own transactions
+		await db.delete(transactions).where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
 	},
 
-	createCategory: async ({ request }) => {
+	createCategory: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 		const label = (data.get('label') as string | null)?.trim();
 		const type = data.get('type') as string | null;
 
 		if (!label || !type) return fail(400, { message: 'Missing fields' });
 
-		const existingColors = (await db.select({ color: categories.color }).from(categories)).map(
-			(r) => r.color
-		);
+		const existingColors = (
+			await db.select({ color: categories.color }).from(categories).where(eq(categories.userId, userId))
+		).map((r) => r.color);
 		const color =
 			CATEGORY_COLORS.find((c) => !existingColors.includes(c)) ?? CATEGORY_COLORS[0];
 
 		const [row] = await db
 			.insert(categories)
-			.values({ label, type: type as 'income' | 'expense' | 'both', color })
+			.values({ userId, label, type: type as 'income' | 'expense' | 'both', color })
 			.returning({ id: categories.id });
 
 		return { createdCategoryId: row.id };

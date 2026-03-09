@@ -4,8 +4,9 @@ import { DEFAULT_BUSINESS_SETTINGS, type InvoiceTheme } from '$lib/types/busines
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
-	const [row] = await db.select().from(businessSettings).where(eq(businessSettings.id, 'default'));
+export const load: PageServerLoad = async ({ locals }) => {
+	const userId = locals.user!.id;
+	const [row] = await db.select().from(businessSettings).where(eq(businessSettings.userId, userId));
 
 	if (!row) {
 		// Return defaults without persisting yet
@@ -30,7 +31,8 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	save: async ({ request }) => {
+	save: async ({ request, locals }) => {
+		const userId = locals.user!.id;
 		const data = await request.formData();
 
 		const name = (data.get('name') as string) ?? '';
@@ -66,7 +68,7 @@ export const actions: Actions = {
 		await db
 			.insert(businessSettings)
 			.values({
-				id: 'default',
+				userId,
 				name,
 				abn,
 				email,
@@ -80,7 +82,7 @@ export const actions: Actions = {
 				postalAddressJson: JSON.stringify(postalAddress)
 			})
 			.onConflictDoUpdate({
-				target: businessSettings.id,
+				target: businessSettings.userId,
 				set: {
 					name,
 					abn,
