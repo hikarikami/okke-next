@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Wallet, Eye, EyeOff } from 'lucide-svelte';
+	import { Wallet, Eye, EyeOff, Loader2 } from 'lucide-svelte';
 	import type { ActionData, PageData } from './$types';
 	import { authClient } from '$lib/auth-client';
 
@@ -32,7 +32,7 @@
 		type="button"
 		onclick={signInWithGoogle}
 		disabled={googleLoading}
-		class="mt-4 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+		class="mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
 	>
 		<svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
 			<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -61,7 +61,7 @@
 				<button
 					type="button"
 					onclick={() => (tab = 'signin')}
-					class="flex-1 rounded-md py-1.5 text-sm font-medium transition-colors {tab === 'signin'
+					class="flex-1 cursor-pointer rounded-md py-1.5 text-sm font-medium transition-colors {tab === 'signin'
 						? 'bg-white text-gray-900 shadow-sm'
 						: 'text-gray-500 hover:text-gray-700'}"
 				>
@@ -70,7 +70,7 @@
 				<button
 					type="button"
 					onclick={() => (tab = 'signup')}
-					class="flex-1 rounded-md py-1.5 text-sm font-medium transition-colors {tab === 'signup'
+					class="flex-1 cursor-pointer rounded-md py-1.5 text-sm font-medium transition-colors {tab === 'signup'
 						? 'bg-white text-gray-900 shadow-sm'
 						: 'text-gray-500 hover:text-gray-700'}"
 				>
@@ -119,7 +119,7 @@
 							<button
 								type="button"
 								onclick={() => (showPassword = !showPassword)}
-								class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+								class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400 hover:text-gray-600"
 								aria-label={showPassword ? 'Hide password' : 'Show password'}
 							>
 								{#if showPassword}<EyeOff size={16} />{:else}<Eye size={16} />{/if}
@@ -134,8 +134,9 @@
 					<button
 						type="submit"
 						disabled={loading}
-						class="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:opacity-60"
+						class="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
 					>
+						{#if loading}<Loader2 size={14} class="animate-spin" />{/if}
 						{loading ? 'Signing in…' : 'Sign in'}
 					</button>
 				</form>
@@ -196,7 +197,7 @@
 							<button
 								type="button"
 								onclick={() => (showPassword = !showPassword)}
-								class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+								class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400 hover:text-gray-600"
 								aria-label={showPassword ? 'Hide password' : 'Show password'}
 							>
 								{#if showPassword}<EyeOff size={16} />{:else}<Eye size={16} />{/if}
@@ -219,7 +220,7 @@
 							<button
 								type="button"
 								onclick={() => (showConfirm = !showConfirm)}
-								class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+								class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400 hover:text-gray-600"
 								aria-label={showConfirm ? 'Hide password' : 'Show password'}
 							>
 								{#if showConfirm}<EyeOff size={16} />{:else}<Eye size={16} />{/if}
@@ -234,8 +235,9 @@
 					<button
 						type="submit"
 						disabled={loading}
-						class="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:opacity-60"
+						class="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
 					>
+						{#if loading}<Loader2 size={14} class="animate-spin" />{/if}
 						{loading ? 'Creating account…' : 'Create account'}
 					</button>
 

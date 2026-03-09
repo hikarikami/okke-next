@@ -6,7 +6,7 @@
 	import SelectTrigger from '$lib/components/ui/SelectTrigger.svelte';
 	import SelectContent from '$lib/components/ui/SelectContent.svelte';
 	import SelectItem from '$lib/components/ui/SelectItem.svelte';
-	import { X, ChevronDown } from 'lucide-svelte';
+	import { X, ChevronDown, Loader2 } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import type { Company } from '$lib/types/contact';
 
@@ -29,6 +29,7 @@
 	}
 
 	let draft = $state<Draft>(blank());
+	let loading = $state(false);
 
 	const isValid = $derived(draft.name.trim() !== '' && draft.email.trim() !== '');
 
@@ -63,7 +64,7 @@
 				</Dialog.Title>
 				<button
 					onclick={tryClose}
-					class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+					class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
 				>
 					<X size={16} />
 				</button>
@@ -72,9 +73,13 @@
 			<form
 				method="POST"
 				action="?/create"
-				use:enhance={() => ({ result, update }) => {
-					if (result.type === 'success' || result.type === 'redirect') { reset(); onclose(); }
-					update();
+				use:enhance={() => {
+					loading = true;
+					return async ({ result, update }) => {
+						if (result.type === 'success' || result.type === 'redirect') { reset(); onclose(); }
+						await update();
+						loading = false;
+					};
 				}}
 			>
 			<input type="hidden" name="companyId" value={draft.companyId} />
@@ -136,15 +141,16 @@
 				<button
 					type="button"
 					onclick={tryClose}
-					class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+					class="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
 				>
 					Cancel
 				</button>
 				<button
 					type="submit"
-					disabled={!isValid}
-					class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={!isValid || loading}
+					class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
 				>
+					{#if loading}<Loader2 size={14} class="animate-spin" />{/if}
 					Save contact
 				</button>
 			</div>

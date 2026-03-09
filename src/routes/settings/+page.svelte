@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Building2, Upload, X, FileText, Eye } from 'lucide-svelte';
+	import { Building2, Upload, X, FileText, Eye, Loader2 } from 'lucide-svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
 	import Checkbox from '$lib/components/ui/Checkbox.svelte';
@@ -26,6 +26,8 @@
 
 	let saved = $state(false);
 	let themeSaved = $state(false);
+	let saving = $state(false);
+	let themeSaving = $state(false);
 	let previewOpen = $state(false);
 	let logoInputEl: HTMLInputElement;
 
@@ -101,10 +103,7 @@
 			Business Information
 		</CardHeader>
 
-		<form method="POST" action="?/save" use:enhance={() => ({ result, update }) => {
-		if (result.type === 'success') { saved = true; setTimeout(() => saved = false, 3000); }
-		update();
-	}}>
+		<form method="POST" action="?/save" use:enhance={() => { saving = true; return async ({ result, update }) => { if (result.type === 'success') { saved = true; setTimeout(() => saved = false, 3000); } await update({ reset: false }); saving = false; }; }}>
 		<input type="hidden" name="logoUrl" value={draft.logoUrl} />
 		<input type="hidden" name="postalAddressSameAsStreet" value={String(draft.postalAddressSameAsStreet)} />
 		<input type="hidden" name="invoiceTheme" value={draft.invoiceTheme} />
@@ -118,7 +117,7 @@
 							<img src={draft.logoUrl} alt="Business logo" class="h-full w-full object-contain" />
 							<button
 								onclick={removeLogo}
-								class="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+								class="absolute right-0.5 top-0.5 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
 								aria-label="Remove logo"
 							>
 								<X size={10} class="text-gray-500" />
@@ -347,8 +346,10 @@
 		
 			<button type="submit"
 
-				class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700"
+				disabled={saving}
+			class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-primary-600 dark:hover:bg-primary-700"
 			>
+				{#if saving}<Loader2 size={14} class="animate-spin" />{/if}
 				Save changes
 			</button>
 				{#if saved}
@@ -370,7 +371,7 @@
 				<button
 					type="button"
 					onclick={() => { previewOpen = true; }}
-					class="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+					class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
 				>
 					<Eye size={13} />
 					Preview
@@ -379,10 +380,7 @@
 			Invoice Appearance
 		</CardHeader>
 
-		<form method="POST" action="?/save" use:enhance={() => ({ result, update }) => {
-			if (result.type === 'success') { themeSaved = true; setTimeout(() => themeSaved = false, 3000); }
-			update();
-		}}>
+		<form method="POST" action="?/save" use:enhance={() => { themeSaving = true; return async ({ result, update }) => { if (result.type === 'success') { themeSaved = true; setTimeout(() => themeSaved = false, 3000); } await update({ reset: false }); themeSaving = false; }; }}>
 			<!-- Pass all existing fields unchanged so they don't get wiped -->
 			<input type="hidden" name="logoUrl" value={draft.logoUrl} />
 			<input type="hidden" name="postalAddressSameAsStreet" value={String(draft.postalAddressSameAsStreet)} />
@@ -561,8 +559,10 @@
 				
 				<button
 					type="submit"
-					class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700"
+					disabled={themeSaving}
+				class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-primary-600 dark:hover:bg-primary-700"
 				>
+					{#if themeSaving}<Loader2 size={14} class="animate-spin" />{/if}
 					Save appearance
 				</button>
 				{#if themeSaved}
@@ -589,7 +589,7 @@
 				<button
 					type="button"
 					onclick={() => { previewOpen = false; }}
-					class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+					class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
 				>
 					<X size={15} />
 				</button>

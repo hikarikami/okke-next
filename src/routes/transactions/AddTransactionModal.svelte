@@ -4,7 +4,7 @@
 	import { Dialog } from '$lib/components/ui/dialog.js';
 	import { Popover } from '$lib/components/ui/popover.js';
 	import { CalendarDate, getLocalTimeZone, today as todayDate } from '@internationalized/date';
-	import { CalendarIcon, X, ChevronLeft, ChevronRight, Upload, Plus } from 'lucide-svelte';
+	import { CalendarIcon, X, ChevronLeft, ChevronRight, Upload, Plus, Loader2 } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { toastStore } from '$lib/stores/toast.svelte';
 	import { CATEGORY_COLORS } from '$lib/types/transaction';
@@ -98,6 +98,7 @@ import type { Category, TransactionType } from '$lib/types/transaction';
 	}
 
 	let addAnother = $state(false);
+	let loading = $state(false);
 </script>
 
 <Dialog.Root bind:open onOpenChange={(v) => { if (!v) tryClose(); }}>
@@ -115,7 +116,7 @@ import type { Category, TransactionType } from '$lib/types/transaction';
 				</Dialog.Title>
 				<button
 					onclick={tryClose}
-					class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+					class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
 				>
 					<X size={16} />
 				</button>
@@ -125,16 +126,20 @@ import type { Category, TransactionType } from '$lib/types/transaction';
 			<form
 				method="POST"
 				action="?/create"
-				use:enhance={() => ({ result, update }) => {
-					if (result.type === 'success') {
-						toastStore.add('Transaction successfully saved');
-						if (addAnother) {
-							reset();
-						} else {
-							tryClose();
+				use:enhance={() => {
+					loading = true;
+					return async ({ result, update }) => {
+						if (result.type === 'success') {
+							toastStore.add('Transaction successfully saved');
+							if (addAnother) {
+								reset();
+							} else {
+								tryClose();
+							}
 						}
-					}
-					update();
+						await update();
+						loading = false;
+					};
 				}}
 			>
 				<!-- Hidden inputs for state-driven fields -->
@@ -153,14 +158,14 @@ import type { Category, TransactionType } from '$lib/types/transaction';
 							<button
 								type="button"
 								onclick={() => updateEntry({ type: 'expense', categoryId: '' })}
-								class="flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors {entry.type === 'expense' ? 'bg-primary-600 text-white dark:bg-primary-900/30 dark:text-primary-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}"
+								class="flex-1 cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors {entry.type === 'expense' ? 'bg-primary-600 text-white dark:bg-primary-900/30 dark:text-primary-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}"
 							>
 								Expense
 							</button>
 							<button
 								type="button"
 								onclick={() => updateEntry({ type: 'income', categoryId: '' })}
-								class="flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors {entry.type === 'income' ? 'bg-primary-600 text-white dark:bg-primary-900/30 dark:text-primary-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}"
+								class="flex-1 cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors {entry.type === 'income' ? 'bg-primary-600 text-white dark:bg-primary-900/30 dark:text-primary-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}"
 							>
 								Income
 							</button>
@@ -373,7 +378,7 @@ import type { Category, TransactionType } from '$lib/types/transaction';
 						<Upload size={18} class="mx-auto mb-2 text-gray-300 dark:text-gray-600" />
 						<p class="text-xs font-medium text-gray-500 dark:text-gray-400">Upload receipt</p>
 						<p class="mt-0.5 text-[11px] text-gray-400 dark:text-gray-500">PNG, JPG, PDF up to 10MB</p>
-						<button type="button" class="mt-3 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
+						<button type="button" class="mt-3 cursor-pointer rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800">
 							Browse files
 						</button>
 					</div>
@@ -385,24 +390,26 @@ import type { Category, TransactionType } from '$lib/types/transaction';
 				<button
 					type="button"
 					onclick={tryClose}
-					class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+					class="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
 				>
 					Cancel
 				</button>
 				<button
 					type="submit"
 					onclick={() => (addAnother = true)}
-					disabled={!isValid}
-					class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+					disabled={!isValid || loading}
+					class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
 				>
+					{#if loading}<Loader2 size={14} class="animate-spin" />{/if}
 					Save and add another
 				</button>
 				<button
 					type="submit"
 					onclick={() => (addAnother = false)}
-					disabled={!isValid}
-					class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={!isValid || loading}
+					class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
 				>
+					{#if loading}<Loader2 size={14} class="animate-spin" />{/if}
 					Save entry
 				</button>
 			</div>

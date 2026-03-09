@@ -37,10 +37,10 @@
 	}
 
 	const rowClass =
-		'grid items-center gap-4 px-5 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50';
+		'grid items-center gap-4 px-5 py-3.5 transition-colors hover:bg-primary-200/25 dark:hover:bg-primary-900/25';
 </script>
 
-<div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+<div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
 	{#if rows.length === 0}
 		<div class="flex flex-col items-center justify-center py-16 text-center">
 			{#if emptyIcon}

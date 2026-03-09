@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import InvoiceTemplate from '$lib/components/InvoiceTemplate.svelte';
 	import type { Invoice, InvoiceLineItem } from '$lib/types/invoice';
-	import { Plus, Trash2, ArrowLeft, Printer } from 'lucide-svelte';
+	import { Plus, Trash2, ArrowLeft, Printer, Loader2 } from 'lucide-svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Textarea from '$lib/components/ui/Textarea.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
@@ -162,9 +162,10 @@
 		email: toEmail || undefined
 	}));
 	const lineItemsJson = $derived(JSON.stringify(lineItems));
+	let loading = $state(false);
 </script>
 
-<form method="POST" action="?/update" use:enhance>
+<form method="POST" action="?/update" use:enhance={() => { loading = true; return async ({ update }) => { await update(); loading = false; }; }}>
 <div class="flex h-full flex-col">
 	<!-- Page header -->
 	<div
@@ -206,16 +207,17 @@
 			<button
 				type="button"
 				onclick={printPreview}
-				class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+				class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
 			>
 				<Printer size={14} />
 				Print
 			</button>
 			<button
 				type="submit"
-				disabled={!fromName || !toName}
-				class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+				disabled={!fromName || !toName || loading}
+				class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
 			>
+				{#if loading}<Loader2 size={14} class="animate-spin" />{/if}
 				Update invoice
 			</button>
 		</div>
@@ -429,7 +431,7 @@
 							<button
 								onclick={() => removeLineItem(li.id)}
 								disabled={lineItems.length <= 1}
-								class="flex h-7 w-7 items-center justify-center rounded-md text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+								class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-900/20 dark:hover:text-red-400"
 							>
 								<Trash2 size={13} />
 							</button>
@@ -439,7 +441,7 @@
 
 				<button
 					onclick={addLineItem}
-					class="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400"
+					class="mt-3 flex cursor-pointer items-center gap-1.5 text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400"
 				>
 					<Plus size={13} />
 					Add line item
