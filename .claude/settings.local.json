@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__svelte__list-sections",
+      "Bash(npm install lucide-svelte --save)",
+      "mcp__svelte__svelte-autofixer",
+      "Bash(npm install clsx tailwind-merge)",
+      "Bash(node -e \"const s = require\\(''./node_modules/bits-ui/dist/bits/select/exports.js''\\); console.log\\(Object.keys\\(s\\)\\)\")",
+      "Bash(node -e \":*)",
+      "mcp__svelte__get-documentation",
+      "Bash(powershell -Command \"\\(Get-Content ''c:/projects/okke-next/src/routes/invoices/new/+page.svelte'' -Raw\\) -replace ''<Input type=\"\"date\"\" bind:value=\\\\{issueDate\\\\} />'', ''<DatePicker bind:value={issueDate} />'' -replace ''<Input type=\"\"date\"\" bind:value=\\\\{dueDate\\\\} />'', ''<DatePicker bind:value={dueDate} />'' | Set-Content ''c:/projects/okke-next/src/routes/invoices/new/+page.svelte'' -NoNewline\")",
+      "Bash(node -e \"const pkg = require\\(''c:/projects/okke-next/node_modules/bits-ui/package.json''\\); console.log\\(Object.keys\\(pkg.exports || {}\\).join\\(''\\\\n''\\)\\)\")",
+      "Bash(npx drizzle-kit migrate)",
+      "Bash(npx tsx src/lib/server/db/seed.ts)",
+      "Bash(python3 -c \":*)",
+      "Bash(node transform-contact-modal.mjs)",
+      "Bash(rm transform-contact-modal.mjs)",
+      "Bash(node transform-new-invoice.mjs)",
+      "Bash(rm transform-new-invoice.mjs)",
+      "Bash(node transform-settings.mjs)",
+      "Bash(rm transform-settings.mjs)",
+      "Bash(npx svelte-check --tsconfig ./tsconfig.json)",
+      "Bash(xxd)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/transactions)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/categories)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/contacts)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/invoices)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/settings)",
+      "Bash(taskkill /F /IM node.exe)"
+    ]
+  }
+}

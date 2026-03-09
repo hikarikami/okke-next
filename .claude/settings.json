@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \":*)",
+      "Bash(npm run check)",
+      "Bash(node scripts/fix-street2.mjs)",
+      "Bash(node scripts/fix3.mjs)",
+      "Bash(rm scripts/fix3.mjs)",
+      "Bash(rmdir scripts)"
+    ],
+    "additionalDirectories": [
+      "c:\\projects\\okke-next\\src\\routes\\invoices\\[id]"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1772956055603,
+      "tag": "0000_petite_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1741392000000,
+      "tag": "0001_invoice_theme",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1741392001000,
+      "tag": "0002_brand_colour",
+      "breakpoints": true
+    }
+  ]
+}

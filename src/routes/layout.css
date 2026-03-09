@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: #eefdf7;
+  --color-primary-100: #e6fbf3;
+  --color-primary-200: #cbf7e6;
+  --color-primary-400: #56e6af;
+  --color-primary-500: #4dcf9e;
+  --color-primary-600: #37a87d;
+  --color-primary-700: #41ad83;
+  --color-primary-800: #348a69;
+  --color-primary-900: #27674f;
+  --color-primary-950: #1e513d;
+}
+
+
