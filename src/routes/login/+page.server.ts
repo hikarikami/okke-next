@@ -40,24 +40,26 @@ export const actions: Actions = {
 
 	signUp: async (event) => {
 		const data = await event.request.formData();
-		const name = data.get('name')?.toString().trim() ?? '';
 		const email = data.get('email')?.toString() ?? '';
 		const password = data.get('password')?.toString() ?? '';
 		const confirmPassword = data.get('confirmPassword')?.toString() ?? '';
 
-		if (!name || !email || !password) {
+		if (!email || !password) {
 			return fail(400, { action: 'signUp', message: 'All fields are required' });
 		}
 		if (password !== confirmPassword) {
 			return fail(400, { action: 'signUp', message: 'Passwords do not match' });
 		}
-		if (password.length < 8) {
-			return fail(400, { action: 'signUp', message: 'Password must be at least 8 characters' });
+		if (password.length < 10) {
+			return fail(400, { action: 'signUp', message: 'Password must be at least 10 characters' });
 		}
+
+		// Use email prefix as a temporary placeholder name — user sets their real name during onboarding
+		const placeholderName = email.split('@')[0];
 
 		try {
 			await auth.api.signUpEmail({
-				body: { name, email, password },
+				body: { name: placeholderName, email, password },
 				headers: event.request.headers
 			});
 		} catch (error) {
@@ -67,6 +69,6 @@ export const actions: Actions = {
 			return fail(500, { action: 'signUp', message: 'An unexpected error occurred' });
 		}
 
-		redirect(302, '/dashboard');
+		redirect(302, '/onboarding');
 	}
 };

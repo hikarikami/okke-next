@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Wallet, Eye, EyeOff, Loader2 } from 'lucide-svelte';
+	import { Wallet, Eye, EyeOff, Loader2, Check, X } from 'lucide-svelte';
 	import type { ActionData, PageData } from './$types';
 	import { authClient } from '$lib/auth-client';
 
@@ -11,6 +11,32 @@
 	let showConfirm = $state(false);
 	let loading = $state(false);
 	let googleLoading = $state(false);
+	let signupPassword = $state('');
+
+	const requirements = $derived([
+		{ label: '10+ characters', met: signupPassword.length >= 10 },
+		{ label: 'One number', met: /\d/.test(signupPassword) },
+		{ label: 'One special character', met: /[^A-Za-z0-9]/.test(signupPassword) },
+		{ label: 'One uppercase letter', met: /[A-Z]/.test(signupPassword) }
+	]);
+
+	const strength = $derived(requirements.filter((r) => r.met).length);
+
+	const strengthLabel = $derived(
+		strength === 0 ? '' :
+		strength === 1 ? 'Weak' :
+		strength === 2 ? 'Fair' :
+		strength === 3 ? 'Good' :
+		'Strong'
+	);
+
+	const strengthColor = $derived(
+		strength === 1 ? 'text-red-500' :
+		strength === 2 ? 'text-amber-500' :
+		strength === 3 ? 'text-yellow-500' :
+		strength === 4 ? 'text-emerald-500' :
+		''
+	);
 
 	async function signInWithGoogle() {
 		googleLoading = true;
@@ -156,19 +182,6 @@
 					class="space-y-4"
 				>
 					<div>
-						<label for="signup-name" class="block text-sm font-medium text-gray-700">Full name</label>
-						<input
-							id="signup-name"
-							type="text"
-							name="name"
-							required
-							autocomplete="name"
-							class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
-							placeholder="Jane Smith"
-						/>
-					</div>
-
-					<div>
 						<label for="signup-email" class="block text-sm font-medium text-gray-700">Email</label>
 						<input
 							id="signup-email"
@@ -189,10 +202,11 @@
 								type={showPassword ? 'text' : 'password'}
 								name="password"
 								required
-								minlength="8"
+								minlength="10"
 								autocomplete="new-password"
+								bind:value={signupPassword}
 								class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
-								placeholder="Min. 8 characters"
+								placeholder="Min. 10 characters"
 							/>
 							<button
 								type="button"
@@ -203,6 +217,46 @@
 								{#if showPassword}<EyeOff size={16} />{:else}<Eye size={16} />{/if}
 							</button>
 						</div>
+
+						{#if signupPassword.length > 0}
+							<div class="mt-3 space-y-2.5">
+								<!-- Strength bar -->
+								<div class="flex items-center gap-2">
+									<div class="flex flex-1 gap-1">
+										{#each [0, 1, 2, 3] as i (i)}
+											<div
+												class="h-1 flex-1 rounded-full transition-all duration-300 {i < strength
+													? strength === 1
+														? 'bg-red-400'
+														: strength === 2
+															? 'bg-amber-400'
+															: strength === 3
+																? 'bg-yellow-400'
+																: 'bg-emerald-400'
+													: 'bg-gray-100'}"
+											></div>
+										{/each}
+									</div>
+									{#if strengthLabel}
+										<span class="text-xs font-medium {strengthColor} w-12 text-right">{strengthLabel}</span>
+									{/if}
+								</div>
+
+								<!-- Requirements checklist -->
+								<ul class="space-y-1">
+									{#each requirements as req (req.label)}
+										<li class="flex items-center gap-1.5 text-xs {req.met ? 'text-emerald-600' : 'text-gray-400'}">
+											{#if req.met}
+												<Check size={11} class="shrink-0" />
+											{:else}
+												<X size={11} class="shrink-0" />
+											{/if}
+											{req.label}
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
 					</div>
 
 					<div>
