@@ -4,7 +4,7 @@
 	import { Building2, Mail, Phone, Globe, Loader2, Check, User } from 'lucide-svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Label from '$lib/components/ui/Label.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '$lib/components/ui/button.svelte';
 	import type { PageData } from './$types';
 	import favicon from '$lib/assets/favicon.svg';
 
